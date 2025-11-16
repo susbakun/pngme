@@ -1,0 +1,36 @@
+#![allow(dead_code)]
+mod args;
+mod chunk;
+mod chunk_type;
+mod commands;
+mod png;
+
+use clap::Parser;
+use anyhow::Error;
+use args::PngmeArgs;
+use commands::{decode, encode, 
+    print_chunks, remove};
+
+
+#[derive(Debug, Parser)]
+#[command(author, version, about, long_about = None)]
+struct Args{
+    #[command(subcommand)]
+    command: PngmeArgs
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
+
+fn main() -> Result<()> {
+    let args = Args::parse();
+
+    match args.command{
+        PngmeArgs::Encode(args) => encode(args)?,
+        PngmeArgs::Decode(args) => decode(args)?,
+        PngmeArgs::Remove(args) => remove(args)?,
+        PngmeArgs::Print(args) => print_chunks(args)?
+    }
+
+    Ok(())
+}
