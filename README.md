@@ -202,14 +202,6 @@ The project includes comprehensive unit tests for:
 - PNG file parsing
 - Encoding and decoding operations
 
-## License
-
-[Specify your license here]
-
-## Contributing
-
-[Add contribution guidelines if applicable]
-
 ## Acknowledgments
 
 This project demonstrates understanding of:
