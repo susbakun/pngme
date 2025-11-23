@@ -20,7 +20,7 @@ pub struct EncodeArgs{
 #[derive(Debug, Args)]
 pub struct DecodeArgs{
     pub file_path: PathBuf,
-    pub chunk_type: String
+    pub chunk_type: Option<String>
 }
 
 #[derive(Debug, Args)]

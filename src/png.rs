@@ -5,6 +5,7 @@ use super::{Result, Error};
 use std::fmt::Display;
 use std::fs;
 use std::path::Path;
+use super::constants::STANDARD_CHUNK_SPECS;
 
 pub struct Png{
     chunks: Vec<Chunk>
@@ -56,6 +57,12 @@ impl Png{
             .flatten()
             .collect()
         
+    }
+
+    pub fn auto_chunk_detect(&self) -> Option<&Chunk> {
+        self.chunks.iter().find(|chunk|
+            !STANDARD_CHUNK_SPECS
+            .contains(&chunk.chunk_type().to_string().as_str()))
     }
 }
 

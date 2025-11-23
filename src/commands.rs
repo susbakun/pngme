@@ -24,14 +24,27 @@ pub fn encode(args: EncodeArgs) -> Result<()>{
 
 pub fn decode(args: DecodeArgs) -> Result<()>{
     let png = Png::from_file(args.file_path)?;
-    let chunk = png.chunk_by_type(&args.chunk_type);
+    let mut potential_message = false;
+
+    let chunk = if let Some(chunk_type) = args.chunk_type{
+        png.chunk_by_type(&chunk_type)
+    }else {
+        potential_message = true;
+        png.auto_chunk_detect()
+    };
+    
     if let Some(chunk) = chunk {
         let message = chunk.data_as_string().unwrap_or("".to_string());
+
+        if potential_message{
+            print!("potential hidden message: ");
+        }
+
         println!("{message}");
         return Ok(())
     }
 
-    bail!("Failed decoding the message");
+    bail!("couldn't find any hidden message");
 }
 
 pub fn remove(args: RemoveArgs) -> Result<()>{
