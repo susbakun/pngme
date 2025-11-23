@@ -5,9 +5,11 @@ A command-line tool written in Rust for encoding and decoding secret messages in
 ## Features
 
 - **Encode**: Embed secret messages into PNG files using custom chunk types
-- **Decode**: Extract hidden messages from PNG files
+- **Decode**: Extract hidden messages from PNG files (with automatic detection)
 - **Remove**: Remove specific chunks from PNG files
 - **Print**: Display all chunks in a PNG file for inspection
+- **Auto-Detection**: Automatically detect potential hidden messages without specifying chunk type
+- **Library API**: Use PNGme as a library in your own Rust projects
 
 ## Installation
 
@@ -54,22 +56,31 @@ pngme encode image.png TeSt "Secret message" output.png
 
 ### Decode a Message
 
-Extract a hidden message from a PNG file:
+Extract a hidden message from a PNG file. You can either specify the chunk type or let PNGme automatically detect it:
 
 ```bash
-pngme decode <file_path> <chunk_type>
+pngme decode <file_path> [chunk_type]
 ```
 
 **Arguments:**
 
 - `file_path`: Path to the PNG file
-- `chunk_type`: The chunk type to decode
+- `chunk_type`: (Optional) The chunk type to decode. If omitted, PNGme will automatically detect potential hidden messages
 
-**Example:**
+**Examples:**
 
 ```bash
+# Decode a specific chunk type
 pngme decode image.png RuSt
+
+# Automatically detect and decode hidden messages
+pngme decode image.png
+# Output: potential hidden message: <message content>
 ```
+
+**Auto-Detection:**
+
+When no chunk type is specified, PNGme automatically searches for chunks that are not part of the standard PNG specification. It identifies potential hidden messages by comparing chunk types against a whitelist of standard chunks (IHDR, IDAT, IEND, PLTE, tRNS, etc.). If a non-standard chunk is found, it's flagged as a "potential hidden message" and its content is displayed.
 
 ### Remove a Chunk
 
@@ -132,23 +143,55 @@ PNG files are composed of chunks, each containing specific data. PNGme leverages
 
 1. **Encoding**: Creating custom chunks with your message and inserting them into the PNG file structure
 2. **Decoding**: Reading the PNG file, finding chunks by type, and extracting the message data
-3. **Validation**: Using CRC32 checksums to ensure chunk integrity
+3. **Auto-Detection**: Scanning for non-standard chunks that may contain hidden messages
+4. **Validation**: Using CRC32 checksums to ensure chunk integrity
 
 The tool maintains PNG file validity, so encoded images remain viewable in standard image viewers.
+
+## Using as a Library
+
+PNGme can be used as a library in your Rust projects. Add it to your `Cargo.toml`:
+
+```toml
+[dependencies]
+pngme = { path = "../pngme" }
+```
+
+Then use it in your code:
+
+```rust
+use pngme::*;
+
+fn main() -> Result<()> {
+    // Run the CLI application
+    run()
+}
+
+// Or use individual functions
+use pngme::{Png, Chunk, ChunkType};
+use std::str::FromStr;
+
+let mut png = Png::from_file("image.png")?;
+let chunk_type = ChunkType::from_str("RuSt")?;
+let chunk = Chunk::new(chunk_type, b"Hello".to_vec());
+png.append_chunk(chunk);
+```
 
 ## Project Structure
 
 ```
 pngme/
 ├── src/
-│   ├── main.rs          # Entry point and CLI argument parsing
-│   ├── args.rs          # Command-line argument definitions
-│   ├── commands.rs      # Implementation of encode, decode, remove, print
-│   ├── chunk.rs         # PNG chunk structure and operations
-│   ├── chunk_type.rs    # Chunk type validation and properties
-│   └── png.rs           # PNG file structure and operations
-├── Cargo.toml           # Project dependencies and metadata
-└── README.md            # This file
+│   ├── lib.rs          # Library entry point and public API
+│   ├── main.rs         # Binary entry point (thin CLI wrapper)
+│   ├── args.rs         # Command-line argument definitions
+│   ├── commands.rs     # Implementation of encode, decode, remove, print
+│   ├── chunk.rs        # PNG chunk structure and operations
+│   ├── chunk_type.rs   # Chunk type validation and properties
+│   ├── png.rs          # PNG file structure and operations
+│   └── constants.rs    # Standard PNG chunk type definitions
+├── Cargo.toml          # Project dependencies and metadata
+└── README.md           # This file
 ```
 
 ## Dependencies
@@ -167,14 +210,18 @@ pngme encode photo.png RuSt "This is a secret message" photo_encoded.png
 
 # 2. Verify the image still displays correctly (open in any image viewer)
 
-# 3. Decode the message
+# 3. Decode the message (with auto-detection)
+pngme decode photo_encoded.png
+# Output: potential hidden message: This is a secret message
+
+# 4. Or decode a specific chunk type
 pngme decode photo_encoded.png RuSt
 # Output: This is a secret message
 
-# 4. View all chunks in the file
+# 5. View all chunks in the file
 pngme print photo_encoded.png
 
-# 5. Remove the secret chunk
+# 6. Remove the secret chunk
 pngme remove photo_encoded.png RuSt
 ```
 
@@ -186,6 +233,7 @@ PNGme provides clear error messages for common issues:
 - Missing or invalid chunk types
 - CRC validation failures
 - File I/O errors
+- No hidden messages found (when using auto-detection)
 
 ## Testing
 
@@ -201,6 +249,7 @@ The project includes comprehensive unit tests for:
 - Chunk type validation
 - PNG file parsing
 - Encoding and decoding operations
+- Auto-detection functionality
 
 ## Acknowledgments
 
@@ -210,3 +259,5 @@ This project demonstrates understanding of:
 - Binary file manipulation
 - Rust's type system and error handling
 - Command-line interface design
+- Library design and API structure
+- Steganography techniques
