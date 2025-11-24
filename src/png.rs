@@ -39,10 +39,6 @@ impl Png{
         }
     }
 
-    pub fn header(&self) -> &[u8; 8]{
-        &Png::STANDARD_HEADER
-    }
-
     pub fn chunks(&self) -> &[Chunk]{
         &self.chunks
     }
@@ -53,7 +49,7 @@ impl Png{
 
     pub fn as_bytes(&self) -> Vec<u8>{
         std::iter::once(Png::STANDARD_HEADER.to_vec())
-            .chain(self.chunks.iter().map(|ch| ch.as_bytes()))
+            .chain(self.chunks.iter().map(Chunk::as_bytes))
             .flatten()
             .collect()
         
@@ -111,13 +107,13 @@ impl Display for Png{
         writeln!(f, "}}")?;
         writeln!(f, "Chunks: {{")?;
         
-        for chunk in self.chunks.iter(){
-            if let Err(err) = writeln!(f, "{}", chunk.to_string()){
+        for chunk in &self.chunks{
+            if let Err(err) = writeln!(f, "{chunk}"){
                 return Err(err)
             }
         }
 
-        writeln!(f, "")
+        writeln!(f)
     }
 }
 

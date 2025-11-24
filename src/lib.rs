@@ -1,4 +1,6 @@
 #![allow(dead_code)]
+#![warn(clippy::all, clippy::pedantic)]
+
 mod args;
 mod chunk;
 mod chunk_type;
@@ -22,6 +24,8 @@ struct Args{
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// # Errors
+/// run will return Error struct from anyhow crate when it fails
 pub fn run() -> Result<()> {
     let args = Args::parse();
 

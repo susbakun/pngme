@@ -15,7 +15,8 @@ pub struct Chunk{
 
 impl Chunk{
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self{
-        let length = data.len() as u32;
+        let length = u32::try_from(data.len())
+            .expect("couldn't convert usize to u32 length");
 
         let bytes = [chunk_type.bytes().to_vec(), data.clone()].concat();
         let crc = Crc::<u32>::new(&CRC_32_ISO_HDLC).checksum(&bytes);
@@ -85,10 +86,10 @@ impl TryFrom<&[u8]> for Chunk{
         }
 
         Ok(Self {
-            length,
             data,
+            length,
+            crc,
             chunk_type,
-            crc
         })
     }
 }

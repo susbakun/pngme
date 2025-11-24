@@ -34,7 +34,7 @@ pub fn decode(args: DecodeArgs) -> Result<()>{
     };
     
     if let Some(chunk) = chunk {
-        let message = chunk.data_as_string().unwrap_or("".to_string());
+        let message = chunk.data_as_string().unwrap_or(String::new());
 
         if potential_message{
             print!("potential hidden message: ");
